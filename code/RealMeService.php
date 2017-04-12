@@ -707,7 +707,7 @@ class RealMeService extends Object
                 'privateKey' => $this->getSPCertContent('key'),
 
                 // According to RealMe messaging spec, must always be transient for assert; is irrelevant for login
-                'NameIDFormat' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+                // 'NameIDFormat' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
 
                 'assertionConsumerService' => [
                     'url' => $this->getAssertionConsumerServiceUrlForEnvironment($this->config()->realme_env),
