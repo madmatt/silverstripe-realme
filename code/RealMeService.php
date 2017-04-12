@@ -415,7 +415,7 @@ class RealMeService extends Object
     public function getUserData()
     {
         if (is_null($this->config()->user_data)) {
-            $sessionData = Session::get('RealMeSessionData');
+            $sessionData = Session::get('RealMe.SessionData');
 
             if (!is_null($sessionData) && unserialize($sessionData) !== false) {
                 $this->config()->user_data = unserialize($sessionData);
