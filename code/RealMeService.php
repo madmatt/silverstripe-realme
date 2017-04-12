@@ -263,7 +263,7 @@ class RealMeService extends Object
             $errors = $this->getAuth()->getErrors();
             $translatedMessage = null;
 
-            if(is_array($errors) && sizeof($errors) > 0) {
+            if(is_array($errors) && !empty($errors)) {
                 // The error message returned by onelogin/php-saml is the top-level error, but we want the actual error
                 if(isset($_POST) && isset($_POST['SAMLResponse'])) {
                     $response = new OneLogin_Saml2_Response($this->getAuth()->getSettings(), $_POST['SAMLResponse']);
