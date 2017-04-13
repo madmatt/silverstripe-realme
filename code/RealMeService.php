@@ -1,5 +1,5 @@
 <?php
-class RealMeService extends Object
+class RealMeService extends Object implements TemplateGlobalProvider
 {
     /**
      * Current RealMe supported environments.
@@ -244,6 +244,70 @@ class RealMeService extends Object
     private $lastError = null;
 
     /**
+     * @return array
+     */
+    public static function get_template_global_variables()
+    {
+        return array(
+            'RealMeUser' => array(
+                'method' => 'current_realme_user'
+            )
+        );
+    }
+
+    /**
+     * Return the user data which was saved to session from the first RealMe
+     * auth.
+     * Note: Does not check authenticity or expiry of this data
+     *
+     * @return RealMeUser
+     */
+    public static function user_data()
+    {
+        $sessionData = Session::get('RealMe.SessionData');
+
+        // Exit point
+        if(is_null($sessionData)) {
+            return null;
+        }
+
+        // Unserialise stored data
+        $user = unserialize($sessionData);
+
+        if($user == false || !$user instanceof RealMeUser) {
+            return null;
+        }
+    }
+
+    /**
+     * Calls available user data and checks for validity
+     *
+     * @return RealMeUser
+     */
+    public static function current_realme_user()
+    {
+
+        $user = self::user_data();
+
+        if(!$user->isValid()) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
+     * A helpful static method that follows silverstripe naming for
+     * Member::currentUser();
+     *
+     * @return RealMeUser
+     */
+    public static function currentRealMeUser()
+    {
+        return self::current_realme_user();
+    }
+
+    /**
      * @return bool|null true if the user is correctly authenticated, false if there was an error with login
      *
      * NB: If the user is not authenticated, they will be redirected to RealMe to login, so a boolean false return here
@@ -304,9 +368,6 @@ class RealMeService extends Object
             $this->getAuth()->login(Director::absoluteBaseURL());
             die;
         }
-
-        $this->config()->user_data = $authData;
-
 
         $this->syncWithLocalMemberDatabase();
 
@@ -407,22 +468,13 @@ class RealMeService extends Object
     }
 
     /**
-     * Return the user data which was saved to session from the first RealMe auth.
-     * Note: Does not check authenticity or expiry of this data
+     * Helper method, alias for RealMeService::user_data()
      *
      * @return RealMeUser
      */
     public function getUserData()
     {
-        if (is_null($this->config()->user_data)) {
-            $sessionData = Session::get('RealMe.SessionData');
-
-            if (!is_null($sessionData) && unserialize($sessionData) !== false) {
-                $this->config()->user_data = unserialize($sessionData);
-            }
-        }
-
-        return $this->config()->user_data;
+        return self::user_data();
     }
 
     /**
