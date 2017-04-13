@@ -465,11 +465,22 @@ class RealMeService extends Object
     }
 
     /**
-     * @return string|null Either the directory where certificates are stored, or null if undefined
+     * @param String $subdir A sub-directory where certificates may be stored for
+     * a specific case
+     * @return string|null Either the directory where certificates are stored,
+     * or null if undefined
      */
-    public function getCertDir()
+    public function getCertDir($subdir = null)
     {
-        return (defined('REALME_CERT_DIR') ? REALME_CERT_DIR : null);
+
+        // Trim prepended seprator to avoid absolute path
+        $path = ltrim(ltrim($subdir, '/'), '\\');
+
+        if(defined('REALME_CERT_DIR')) {
+            $path = REALME_CERT_DIR . '/' . $path; // Duplicate slashes will be handled by realpath()
+        }
+
+        return realpath($path);
     }
 
     /**
@@ -500,7 +511,8 @@ class RealMeService extends Object
     {
         $cfg = $this->config();
         $name = $this->getConfigurationVarByEnv('idp_x509_cert_filenames', $cfg->realme_env, $cfg->integration_type);
-        return Controller::join_links($this->getCertDir(), $name);
+
+        return $this->getCertDir($name);
     }
 
     /**
@@ -523,7 +535,7 @@ class RealMeService extends Object
 
     public function getIdPCertContent()
     {
-        return $this->getCertificateContents(Controller::join_links($this->getIdPCertPath()), 'certificate');
+        return $this->getCertificateContents($this->getIdPCertPath(), 'certificate');
     }
 
     /**
@@ -792,13 +804,11 @@ class RealMeService extends Object
     private function getCertPath($certName)
     {
         $certPath = null;
-        $certDir = $this->getCertDir();
 
         if (in_array($certName, array('SIGNING', 'MUTUAL'))) {
             $constName = sprintf('REALME_%s_CERT_FILENAME', strtoupper($certName));
             if (defined($constName)) {
-                $filename = constant($constName);
-                $certPath = Controller::join_links($certDir, $filename);
+                $certPath = $this->getCertDir(constant($constName));
             }
         }
 
